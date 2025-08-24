@@ -93,6 +93,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   return (
+  <div className="min-h-screen w-full relative bg-black">
+    {/* X Organizations Black Background with Top Glow */}
+    <div
+      className="fixed inset-0 z-0"
+      style={{
+       background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(120, 180, 255, 0.25), transparent 70%), #000000",
+      }}
+    />
+  
     <div className="h-screen bg-background flex">
       {/* Desktop Sidebar */}
       <div className="fixed z-10 hidden lg:block w-80 h-full">
@@ -191,5 +200,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
       </div>
     </div>
+  </div>
   );
 };
