@@ -33,7 +33,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       </Avatar>
       
       <div className={`flex flex-col max-w-[80%] ${isUser ? 'items-end' : 'items-start'}`}>
-        <Card className={`p-4 transition-smooth ${
+        <Card className={`p-3 sm:p-4 transition-smooth break-words ${
           isUser 
             ? 'bg-chat-user-bg text-chat-user-text border-none' 
             : 'bg-chat-ai-bg text-chat-ai-text border-border'
@@ -41,7 +41,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           {message.type === MessageType.AI ? (
             <MarkdownRenderer content={message.content} />
           ) : (
-            <div className="text-body-md whitespace-pre-wrap">{message.content}</div>
+            <div className="text-body-md whitespace-pre-wrap break-words">{message.content}</div>
           )}
         </Card>
         

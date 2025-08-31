@@ -6,7 +6,7 @@ import { mockRootProps } from '../data/chatMockData';
 
 export default function ChatAIPage() {
   return (
-    <div className="w-full h-screen">
+    <div className="w-full min-h-dvh">
       <ChatInterface {...mockRootProps} />
     </div>
   );

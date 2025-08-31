@@ -50,8 +50,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   }, []);
 
   return (
-    <Card className="p-4 bg-card border-border">
-      <form onSubmit={handleSubmit} className="flex gap-3 items-end">
+    <Card className="p-2 sm:p-4 bg-card border-border">
+      <form onSubmit={handleSubmit} className="flex gap-2 sm:gap-3 items-end">
         <div className="flex-1">
           <Textarea
             ref={textareaRef}
@@ -60,6 +60,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
+            enterKeyHint="send"
+            aria-label="Message input"
             className="min-h-[44px] max-h-[120px] resize-none bg-chat-input-bg border-border text-foreground placeholder:text-muted-foreground"
             rows={1}
           />
@@ -68,9 +70,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         <Button
           type="submit"
           disabled={!message.trim() || disabled}
-          className="h-11 w-11 p-0 bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="h-10 w-10 sm:h-11 sm:w-11 p-0 bg-primary hover:bg-primary/90 text-primary-foreground"
         >
-          <ArrowUturnUpIcon className="h-5 w-5" />
+          <ArrowUturnUpIcon className="h-4 w-4 sm:h-5 sm:w-5" />
         </Button>
       </form>
       

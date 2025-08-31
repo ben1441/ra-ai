@@ -29,12 +29,30 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-slot="scroll-area-viewport"]');
       if (scrollContainer) {
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
       }
     }
   }, [messages, chatStatus]);
+
+  // Keep view pinned to bottom on viewport/keyboard changes (mobile)
+  useEffect(() => {
+    const handler = () => {
+      if (!scrollAreaRef.current) return;
+      const sc = scrollAreaRef.current.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement | null;
+      if (sc) sc.scrollTop = sc.scrollHeight;
+    };
+    const vv = (typeof window !== 'undefined' && (window as any).visualViewport) ? (window as any).visualViewport : null;
+    vv?.addEventListener('resize', handler);
+    window.addEventListener('resize', handler);
+    window.addEventListener('orientationchange', handler);
+    return () => {
+      vv?.removeEventListener('resize', handler);
+      window.removeEventListener('resize', handler);
+      window.removeEventListener('orientationchange', handler);
+    };
+  }, []);
 
   const handleSendMessage = async (content: string) => {
     // Add user message immediately
@@ -93,16 +111,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   return (
-  <div className="min-h-screen w-full relative bg-black">
+  <div className="min-h-dvh w-full relative bg-black z-10">
     {/* X Organizations Black Background with Top Glow */}
     <div
-      className="fixed inset-0 z-0"
+      className="fixed inset-0 -z-10 pointer-events-none"
       style={{
        background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(120, 180, 255, 0.25), transparent 70%), #000000",
       }}
     />
   
-    <div className="h-screen bg-background flex">
+    <div className="min-h-dvh bg-background flex">
       {/* Desktop Sidebar */}
       <div className="fixed z-10 hidden lg:block w-80 h-full">
         <ChatSidebar
@@ -115,7 +133,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
       {/* Mobile Sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-80 p-0">
+        <SheetContent side="left" className="w-[85vw] max-w-sm p-0">
           <ChatSidebar
             sessions={chatSessions}
             currentSessionId={currentSessionId}
@@ -128,7 +146,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col h-full lg:ml-80">
         {/* Header */}
-        <Card className="p-4 border-b border-border bg-card flex items-center gap-3">
+        <Card className="sticky top-0 z-10 p-4 pt-[env(safe-area-inset-top)] border-b border-border bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 flex items-center gap-3">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="sm" className="lg:hidden">
@@ -149,8 +167,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
         {/* Messages Area */}
         <div className="flex-1 flex flex-col min-h-0">
-          <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
-            <div className="max-w-4xl mx-auto">
+          <ScrollArea ref={scrollAreaRef} className="flex-1 p-3 sm:p-4">
+            <div className="max-w-4xl mx-auto px-2 sm:px-0 pb-28 sm:pb-32">
               {messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
@@ -188,8 +206,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </ScrollArea>
 
           {/* Input Area */}
-          <div className="p-4 border-t border-border">
-            <div className="max-w-4xl mx-auto">
+          <div className="p-3 sm:p-4 pb-[env(safe-area-inset-bottom)] border-t border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky bottom-0">
+            <div className="max-w-4xl mx-auto px-2 sm:px-0">
               <MessageInput
                 onSendMessage={handleSendMessage}
                 disabled={chatStatus === ChatStatus.THINKING}
