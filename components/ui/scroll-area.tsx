@@ -18,7 +18,7 @@ const ScrollArea = React.forwardRef<
     >
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
-        className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
+        className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1 overscroll-contain touch-pan-y [--tw-pan-y:pan-y] [-webkit-overflow-scrolling:touch] will-change-scroll"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>

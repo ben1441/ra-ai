@@ -54,6 +54,26 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     };
   }, []);
 
+  const formatSearchMarkdown = (
+    query: string,
+    provider: string,
+    results: Array<{ title: string; url: string; snippet: string }>
+  ) => {
+    if (!results?.length) {
+      return `## Search results for "${query}"
+
+No results found.`;
+    }
+    const lines = results.map(
+      (r) => `- [${r.title}](${r.url}) — ${r.snippet}`
+    );
+    return `## Search results for "${query}"
+
+Provider: ${provider}
+
+${lines.join('\n')}`;
+  };
+
   const handleSendMessage = async (content: string) => {
     // Add user message immediately
     const userMessage = {
@@ -61,35 +81,73 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       content,
       type: MessageType.USER,
       timestamp: new Date(),
-      status: MessageStatus.SENT
+      status: MessageStatus.SENT,
     };
+    setMessages((prev) => [...prev, userMessage]);
 
-    setMessages(prev => [...prev, userMessage]);
+    const trimmed = content.trim();
+    const isSearchCmd = /^\/search\s+/i.test(trimmed);
+    const isQCmd = /^\?\s*/.test(trimmed);
+    const isSearch = isSearchCmd || isQCmd;
+    const query = isSearchCmd
+      ? trimmed.replace(/^\/search\s+/i, "").trim()
+      : isQCmd
+      ? trimmed.replace(/^\?\s*/, "").trim()
+      : "";
+
+    if (isSearch && query) {
+      setChatStatus(ChatStatus.THINKING);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&provider=auto`, { method: 'GET' });
+        const data = await res.json();
+        if (!res.ok || data?.error) {
+          throw new Error(data?.error || `Search failed with status ${res.status}`);
+        }
+        const md = formatSearchMarkdown(query, data.provider || 'auto', data.results || []);
+        const aiMessage = {
+          id: (Date.now() + 1).toString(),
+          content: md,
+          type: MessageType.AI,
+          timestamp: new Date(),
+          status: MessageStatus.DELIVERED,
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+        setChatStatus(ChatStatus.IDLE);
+      } catch (e: any) {
+        const aiMessage = {
+          id: (Date.now() + 1).toString(),
+          content: `**Search error:** ${e?.message || String(e)}`,
+          type: MessageType.AI,
+          timestamp: new Date(),
+          status: MessageStatus.ERROR,
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+        setChatStatus(ChatStatus.ERROR);
+      }
+      return;
+    }
+
+    // Fallback: simulated AI response (demo)
     setChatStatus(ChatStatus.THINKING);
-
-    // Simulate AI response delay
     setTimeout(() => {
       const aiResponses = [
         "That's a fascinating question! Let me research that for you. Based on current data and recent studies, here's what I've found:\n\n## Key Findings\n\n• **Primary research** indicates significant developments in this area\n• **Recent studies** show promising results with `95% accuracy`\n• **Industry applications** are expanding rapidly\n\n> **Note**: This analysis is based on the latest available data from peer-reviewed sources.\n\nWould you like me to dive deeper into any specific aspect?",
         "I'd be happy to help you explore that topic! Here are some key insights:\n\n### Current State\n\n• **Market trends** show exponential growth\n• **Technical challenges** are being addressed through innovative approaches\n• **Future outlook** remains highly optimistic\n\n```\nKey Metrics:\n- Growth Rate: 45% YoY\n- Market Size: $2.3B\n- Adoption Rate: 78%\n```\n\nWhat specific area would you like to explore further?",
         "Excellent point! This is an area with significant recent developments:\n\n## Recent Breakthroughs\n\n🔬 **Research Advances**: New methodologies showing **breakthrough results**\n\n📊 **Data Analysis**: Comprehensive studies reveal important patterns\n\n🚀 **Innovation**: Cutting-edge solutions emerging from top institutions\n\n> The field is evolving rapidly with new discoveries published weekly.\n\nShall I provide more detailed analysis on any particular aspect?",
         "That's a complex topic with multiple perspectives. Here's a comprehensive analysis:\n\n### Different Viewpoints\n\n1. **Academic Perspective**: Focus on theoretical foundations\n2. **Industry Perspective**: Emphasis on practical applications\n3. **Regulatory Perspective**: Concerns about compliance and ethics\n\n**Consensus Areas:**\n• Need for standardization\n• Importance of ethical considerations\n• Potential for significant impact\n\nWould you like me to elaborate on any specific perspective?",
-        "Great question! I've analyzed recent publications and data sources:\n\n## Research Summary\n\n📚 **Literature Review**: 150+ papers analyzed from top-tier journals\n\n📈 **Trend Analysis**: Clear patterns emerging in the data\n\n🎯 **Key Insights**:\n• **Methodology improvements** leading to better outcomes\n• **Cross-disciplinary collaboration** driving innovation\n• **Real-world applications** showing measurable impact\n\n```markdown\n# Quick Stats\n- Papers reviewed: 150+\n- Time period: Last 24 months\n- Confidence level: High\n```\n\nWhat specific aspect interests you most?"
+        "Great question! I've analyzed recent publications and data sources:\n\n## Research Summary\n\n📚 **Literature Review**: 150+ papers analyzed from top-tier journals\n\n📈 **Trend Analysis**: Clear patterns emerging in the data\n\n🎯 **Key Insights**:\n• **Methodology improvements** leading to better outcomes\n• **Cross-disciplinary collaboration** driving innovation\n• **Real-world applications** showing measurable impact\n\n```markdown\n# Quick Stats\n- Papers reviewed: 150+\n- Time period: Last 24 months\n- Confidence level: High\n```\n\nWhat specific aspect interests you most?",
       ];
-
       const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
-      
       const aiMessage = {
         id: (Date.now() + 1).toString(),
         content: randomResponse,
         type: MessageType.AI,
         timestamp: new Date(),
-        status: MessageStatus.DELIVERED
+        status: MessageStatus.DELIVERED,
       };
-
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages((prev) => [...prev, aiMessage]);
       setChatStatus(ChatStatus.IDLE);
-    }, 2000);
+    }, 1200);
   };
 
   const handleSessionSelect = (sessionId: string) => {
